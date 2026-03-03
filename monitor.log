@@ -8,3 +8,6 @@
 [2026-03-03 21:55:55 UTC] SMS failed: Sorry, ability to send URLs via text is limited to verified accounts. Please go to https://textbelt.com/whitelist?key=1e4cba71c3acba0db91a8560a9f5a094152e3a25IHL8Z2dh8Cwyu7W7Rc93rEXIM or email support@textbelt.com with your use case and we will verify your key ASAP.
 [2026-03-03 22:00:28 UTC] Checked https://www.oregon.gov/ | Hash: e3447910fd8e... | Previous: e3447910fd8e...
 [2026-03-03 22:00:28 UTC] No change detected.
+[2026-03-03 22:07:20 UTC] Checked https://www.oregon.gov/energy/Incentives/Pages/home-energy-rebates.aspx#HER1 | Hash: efac2151ce6c... | Previous: e3447910fd8e...
+[2026-03-03 22:07:20 UTC] ALERT: https://www.oregon.gov/energy/Incentives/Pages/home-energy-rebates.aspx#HER1 has changed.
+[2026-03-03 22:07:20 UTC] SMS failed: Sorry, ability to send URLs via text is limited to verified accounts. Please go to https://textbelt.com/whitelist?key=1e4cba71c3acba0db91a8560a9f5a094152e3a25IHL8Z2dh8Cwyu7W7Rc93rEXIM or email support@textbelt.com with your use case and we will verify your key ASAP.
