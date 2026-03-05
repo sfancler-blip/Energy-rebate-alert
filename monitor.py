@@ -13,7 +13,7 @@ WATCH_TEXT = os.environ.get("WATCH_TEXT", "")
 MISSING_TEXT_MESSAGE = os.environ.get("MISSING_TEXT_MESSAGE", f"ALERT: Expected text is no longer found on the monitored page.")
 
 # MODE: "hash" — alert on any page change | "text" — alert when WATCH_TEXT disappears
-MODE = "hash"
+MODE = os.environ.get("MODE", "hash")
 
 STATE_FILE = "state.json"
 LOG_FILE = "monitor.log"
