@@ -9,6 +9,8 @@ URL = os.environ["TARGET_URL"]
 PHONE = os.environ["PHONE"]
 TEXTBELT_KEY = os.environ["TEXTBELT_APIKEY"]
 ALERT_MESSAGE = os.environ.get("ALERT_MESSAGE", "ALERT: The webpage you are monitoring has changed.")
+WATCH_TEXT = os.environ.get("WATCH_TEXT", "")
+MISSING_TEXT_MESSAGE = os.environ.get("MISSING_TEXT_MESSAGE", f"ALERT: Expected text is no longer found on the monitored page.")
 
 STATE_FILE = "state.json"
 LOG_FILE = "monitor.log"
@@ -26,7 +28,7 @@ def load_state():
     if os.path.exists(STATE_FILE):
         with open(STATE_FILE) as f:
             return json.load(f)
-    return {"page_hash": None}
+    return {"page_hash": None, "text_found": None}
 
 
 def save_state(state):
@@ -57,6 +59,28 @@ def send_sms(message):
         log(f"SMS failed: {result.get('error', 'unknown error')}")
 
 
+def check_watch_text(content, state):
+    if not WATCH_TEXT:
+        return state
+
+    prev_found = state.get("text_found")
+    currently_found = WATCH_TEXT in content
+
+    if prev_found is None:
+        log(f"Watch text {'found' if currently_found else 'NOT found'} on first run — baseline established.")
+    elif prev_found and not currently_found:
+        msg = MISSING_TEXT_MESSAGE
+        log(f"Watch text gone missing: {msg}")
+        send_sms(msg)
+    elif not prev_found and not currently_found:
+        log("Watch text still missing — already alerted.")
+    else:
+        log("Watch text present — OK.")
+
+    state["text_found"] = currently_found
+    return state
+
+
 def main():
     state = load_state()
     prev_hash = state.get("page_hash")
@@ -80,6 +104,7 @@ def main():
         log("No change detected.")
 
     state["page_hash"] = current_hash
+    state = check_watch_text(content, state)
     save_state(state)
 
 
