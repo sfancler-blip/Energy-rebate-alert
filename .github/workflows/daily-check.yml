@@ -34,6 +34,25 @@ jobs:
           TEXTBELT_APIKEY: ${{ secrets.TEXTBELT_APIKEY }}
         run: python monitor.py
 
+      - name: Job summary
+        run: |
+          TEXT_FOUND=$(python3 -c "import json; s=json.load(open('state.json')); print(s.get('text_found'))")
+          MODE_VAL="${{ vars.MODE }}"
+          if [ "$MODE_VAL" = "text" ]; then
+            if [ "$TEXT_FOUND" = "True" ]; then
+              echo "## ✅ Watch text FOUND" >> $GITHUB_STEP_SUMMARY
+            elif [ "$TEXT_FOUND" = "False" ]; then
+              echo "## ❌ Watch text NOT found" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "## 🔄 Baseline established (first run)" >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "## ✅ Hash check complete" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "**URL:** ${{ vars.TARGET_URL }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Mode:** ${MODE_VAL:-hash}" >> $GITHUB_STEP_SUMMARY
+          echo "**Time:** $(date -u '+%Y-%m-%d %H:%M UTC')" >> $GITHUB_STEP_SUMMARY
+
       - name: Commit updated state and log
         run: |
           git config user.name "github-actions[bot]"
