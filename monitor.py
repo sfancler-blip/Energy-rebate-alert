@@ -76,7 +76,9 @@ def check_watch_text(content, state):
         log(f"Watch text gone missing: {msg}")
         send_sms(msg)
     elif not prev_found and not currently_found:
-        log("Watch text still missing — already alerted.")
+        msg = MISSING_TEXT_MESSAGE
+        log(f"Watch text still missing — re-alerting: {msg}")
+        send_sms(msg)
     else:
         log("Watch text present — OK.")
 
