@@ -1,0 +1,7 @@
+{
+  "url": "https://example.com/page",
+  "label": "Human-readable name of what you are watching",
+  "match_patterns": ["August 21", "Aug 21", "Aug. 21", "8/21"],
+  "alert_subject": "CHANGE DETECTED: <what changed>",
+  "settle_ms": 3000
+}
