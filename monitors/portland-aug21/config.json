@@ -3,5 +3,5 @@
   "label": "Aug 21 Portland, OR show (String & Shadow)",
   "match_patterns": ["August 21", "Aug 21", "Aug. 21", "8/21", "8-21", "Thursday, August 21"],
   "alert_subject": "TICKETS/CHANGE: Aug 21 Portland show (String & Shadow)",
-  "settle_ms": 4000
+  "settle_ms": 6000
 }
