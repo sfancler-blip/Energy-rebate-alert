@@ -6,3 +6,6 @@ Call log:
 [2026-07-21 18:27:59 UTC] First run — baseline established. No alert sent.
 [2026-07-21 18:27:59 UTC] Captured section:
 AUGUST 21 - Portland, OR - 7pm - River Street Studios - $20-$35 suggested donation (at the door only)
+[2026-07-21 18:42:22 UTC] ERROR fetching https://www.stringandshadow.com/calendar: Page.goto: Timeout 60000ms exceeded.
+Call log:
+  - navigating to "https://www.stringandshadow.com/calendar", waiting until "networkidle"
