@@ -14,14 +14,23 @@ Everything this monitor needs lives next to this file:
 It has no dependency on any other monitor in the repo. Copy the whole folder,
 change config.json, and you have an independent monitor for another site.
 
-Email is sent via SMTP using env vars (set as GitHub Actions secrets):
-  MAIL_USERNAME   SMTP login / From address (e.g. you@gmail.com)
-  MAIL_PASSWORD   SMTP password / app password
-  MAIL_TO         recipient (defaults to MAIL_USERNAME)
-  MAIL_HOST       default smtp.gmail.com
-  MAIL_PORT       default 465 (SSL)
-If MAIL_USERNAME/MAIL_PASSWORD are unset, the alert is logged but not sent, so
-the very first (baseline) run works before you've configured secrets.
+Email is sent one of two ways, tried in this order (env vars set as GitHub
+Actions secrets):
+
+  1. Resend HTTP API (preferred — no SMTP creds, no 2FA, no burner Gmail):
+       RESEND_API_KEY   API key from resend.com
+       MAIL_TO          recipient address
+       MAIL_FROM        default "Site Alerts <onboarding@resend.dev>"
+
+  2. SMTP fallback (e.g. Gmail with an app password):
+       MAIL_USERNAME    SMTP login / From address
+       MAIL_PASSWORD    SMTP password / app password
+       MAIL_TO          recipient (defaults to MAIL_USERNAME)
+       MAIL_HOST        default smtp.gmail.com
+       MAIL_PORT        default 465 (SSL)
+
+If neither is configured, the alert is logged but not sent, so the very first
+(baseline) run works before you've configured secrets.
 """
 import json
 import os
@@ -30,6 +39,8 @@ import ssl
 import sys
 import smtplib
 import hashlib
+import urllib.request
+import urllib.error
 from email.message import EmailMessage
 from datetime import datetime, timezone
 from pathlib import Path
@@ -158,17 +169,51 @@ def fingerprint(section):
 # Email
 # ---------------------------------------------------------------------------
 
-def send_email(subject, body):
+def send_via_resend(subject, body):
+    """Return True if handled (sent or definitively failed), False if not configured."""
+    api_key = os.environ.get("RESEND_API_KEY")
+    if not api_key:
+        return False
+
+    to_addr = os.environ.get("MAIL_TO")
+    from_addr = os.environ.get("MAIL_FROM", "Site Alerts <onboarding@resend.dev>")
+    if not to_addr:
+        log("RESEND_API_KEY is set but MAIL_TO is missing — cannot send.")
+        return True
+
+    payload = json.dumps(
+        {"from": from_addr, "to": [to_addr], "subject": subject, "text": body}
+    ).encode()
+    req = urllib.request.Request(
+        "https://api.resend.com/emails",
+        data=payload,
+        method="POST",
+        headers={
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
+        },
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            resp.read()
+        log(f"Email sent via Resend to {to_addr}: {subject}")
+    except urllib.error.HTTPError as e:
+        log(f"Resend email FAILED ({e.code}): {e.read().decode(errors='replace')}")
+    except Exception as e:  # noqa: BLE001
+        log(f"Resend email FAILED: {e}")
+    return True
+
+
+def send_via_smtp(subject, body):
+    """Return True if handled (sent or definitively failed), False if not configured."""
     user = os.environ.get("MAIL_USERNAME")
     password = os.environ.get("MAIL_PASSWORD")
+    if not user or not password:
+        return False
+
     to_addr = os.environ.get("MAIL_TO") or user
     host = os.environ.get("MAIL_HOST", "smtp.gmail.com")
     port = int(os.environ.get("MAIL_PORT", "465"))
-
-    if not user or not password:
-        log("Email NOT sent (MAIL_USERNAME/MAIL_PASSWORD not set). Body follows:")
-        log(body.replace("\n", " | "))
-        return
 
     msg = EmailMessage()
     msg["Subject"] = subject
@@ -187,9 +232,19 @@ def send_email(subject, body):
                 s.starttls(context=context)
                 s.login(user, password)
                 s.send_message(msg)
-        log(f"Email sent to {to_addr}: {subject}")
+        log(f"Email sent via SMTP to {to_addr}: {subject}")
     except Exception as e:  # noqa: BLE001
-        log(f"Email FAILED: {e}")
+        log(f"SMTP email FAILED: {e}")
+    return True
+
+
+def send_email(subject, body):
+    if send_via_resend(subject, body):
+        return
+    if send_via_smtp(subject, body):
+        return
+    log("Email NOT sent (no RESEND_API_KEY or MAIL_USERNAME/MAIL_PASSWORD set). Body follows:")
+    log(body.replace("\n", " | "))
 
 
 # ---------------------------------------------------------------------------

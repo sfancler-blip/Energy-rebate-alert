@@ -66,11 +66,12 @@ Assets live in `.claude/skills/site-change-alert/assets/`.
 
 6. **Commit & push.** The workflow commits `state.json` back after each run.
 
-7. **Tell the user the one-time setup:** add the email secrets
-   (`MAIL_USERNAME`, `MAIL_PASSWORD`, optional `MAIL_TO`) in the repo's GitHub
-   Settings → Secrets and variables → Actions. See `references/setup-email.md`.
-   Until secrets exist, runs still succeed and log the alert instead of emailing,
-   so the baseline is safe to establish first.
+7. **Tell the user the one-time setup:** add email secrets in the repo's
+   GitHub Settings → Secrets and variables → Actions. Preferred: `RESEND_API_KEY`
+   + `MAIL_TO` (no password/2FA — see `references/setup-email.md`). SMTP
+   (`MAIL_USERNAME`/`MAIL_PASSWORD`) is a documented fallback if Resend isn't
+   used. Until either is set, runs still succeed and log the alert instead of
+   emailing, so the baseline is safe to establish first.
 
 ## Notes
 
