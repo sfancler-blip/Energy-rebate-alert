@@ -1,6 +1,6 @@
 # Self-contained daily monitor for the Aug 21 Portland, OR show (String & Shadow).
 # Independent of every other monitor: its own schedule, its own state file.
-name: Monitor portland-aug21
+name: String and Shadow
 
 on:
   schedule:
