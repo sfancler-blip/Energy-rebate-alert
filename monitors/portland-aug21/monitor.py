@@ -146,7 +146,11 @@ def fetch_section(cfg):
     with sync_playwright() as p:
         browser = p.chromium.launch(**launch_kwargs)
         page = browser.new_page(user_agent=ua)
-        page.goto(url, wait_until="networkidle", timeout=60000)
+        # "networkidle" never fires on sites that keep a background connection
+        # open (chat widgets, analytics beacons, embedded calendar polling —
+        # common on Squarespace). Wait for "load" instead, then give the page
+        # settle_ms to finish any client-side rendering.
+        page.goto(url, wait_until="load", timeout=60000)
         page.wait_for_timeout(wait_ms)
         result = page.evaluate(EXTRACT_JS, patterns)
         browser.close()
